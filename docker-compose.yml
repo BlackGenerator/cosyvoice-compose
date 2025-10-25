@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "7860:7860"
+    volumes:
+      - cosyvoice_cache:/root/.cache/modelscope
+      - cosyvoice_output:/app/static
+    restart: unless-stopped
+
+  gradio:
+    build:
+      context: ./gradio
+      dockerfile: Dockerfile
+    ports:
+      - "7870:7860"
+    volumes:
+      - cosyvoice_cache:/root/.cache/modelscope
+    command: ["python", "webui.py", "--server_name", "0.0.0.0", "--port", "7860"]
+    restart: unless-stopped
+
+volumes:
+  cosyvoice_cache:
+  cosyvoice_output:

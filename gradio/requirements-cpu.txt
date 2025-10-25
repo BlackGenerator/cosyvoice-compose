@@ -1,0 +1,9 @@
+# gradio/requirements-cpu.txt
+# CosyVoice 官方依赖（仅保留 CPU 兼容部分）
+modelscope==1.13.2
+gradio==4.29.0
+pydub==0.25.1
+soundfile==0.12.1
+numpy==1.26.4
+onnxruntime==1.18.0
+onnx==1.16.1

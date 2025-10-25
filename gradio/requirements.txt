@@ -1,0 +1,6 @@
+# gradio/requirements.txt
+gradio==4.29.0
+modelscope==1.15.0
+funasr==1.1.9
+numpy==1.26.4
+soundfile==0.12.1

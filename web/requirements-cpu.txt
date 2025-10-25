@@ -1,0 +1,14 @@
+# web/requirements-cpu.txt
+# CosyVoice + Flask 的 CPU 兼容依赖
+
+# --- CosyVoice 官方依赖（CPU 版）---
+modelscope==1.13.2
+pydub==0.25.1
+soundfile==0.12.1
+numpy==1.26.4
+onnxruntime==1.18.0
+onnx==1.16.1
+
+# --- Web 服务额外依赖 ---
+flask==3.0.3
+flask-cors==5.0.0      # 如需跨域
