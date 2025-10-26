@@ -1,6 +1,14 @@
+# docker-compose.yml
 version: '3.8'
 
 services:
+  base:
+    build:
+      context: ./base
+      dockerfile: Dockerfile
+    image: cosyvoice-base:latest
+    profiles: ["base"]
+
   web:
     build:
       context: ./web
@@ -11,6 +19,8 @@ services:
       - cosyvoice_cache:/root/.cache/modelscope
       - cosyvoice_output:/app/static
     restart: unless-stopped
+    depends_on:
+      - base
 
   gradio:
     build:
@@ -20,6 +30,8 @@ services:
       - "7870:7860"
     volumes:
       - cosyvoice_cache:/root/.cache/modelscope
+    depends_on:
+      - base
 #    restart: unless-stopped
 
 volumes:
