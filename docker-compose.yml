@@ -1,14 +1,5 @@
 # docker-compose.yml
-version: '3.8'
-
 services:
-  base:
-    build:
-      context: ./base
-      dockerfile: Dockerfile
-    image: cosyvoice-base:latest
-    profiles: ["base"]
-
   web:
     build:
       context: ./web
@@ -16,13 +7,10 @@ services:
     ports:
       - "7860:7860"
     volumes:
-    # 挂载本地预下载的模型目录
       - ./pretrained_models:/cosyvoice_src/pretrained_models
       - cosyvoice_cache:/root/.cache/modelscope
       - cosyvoice_output:/app/static
     restart: unless-stopped
-    depends_on:
-      - base
 
   gradio:
     build:
@@ -31,12 +19,9 @@ services:
     ports:
       - "7870:7860"
     volumes:
-    # 挂载本地预下载的模型目录
       - ./pretrained_models:/cosyvoice_src/pretrained_models
       - cosyvoice_cache:/root/.cache/modelscope
-    depends_on:
-      - base
-#    restart: unless-stopped
+    restart: unless-stopped
 
 volumes:
   cosyvoice_cache:
