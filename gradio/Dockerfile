@@ -3,8 +3,6 @@
 
 FROM python:3.10-slim
 
-WORKDIR /app
-
 # === 安全处理 APT 源（兼容无 sources.list 的 slim 镜像）===
 RUN set -eux; \
     CODENAME="$(grep -oP 'VERSION_CODENAME=\K\w+' /etc/os-release || echo 'bookworm')"; \
@@ -37,15 +35,15 @@ RUN unset PIP_INDEX_URL PIP_TRUSTED_HOST && \
     pip install torch==2.3.1+cpu torchaudio==2.3.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
 
 # === 使 cosyvoice 模块可导入（复制到 site-packages）===
-RUN cp -r /cosyvoice_src/cosyvoice /usr/local/lib/python3.10/site-packages/
+# RUN cp -r /cosyvoice_src/cosyvoice /usr/local/lib/python3.10/site-packages/
 
 # 复制 Gradio WebUI 入口脚本
-RUN cp /cosyvoice_src/web/webui.py /app/webui.py
+# RUN cp /cosyvoice_src/webui.py /app/webui.py
 
 # 清理临时源码（可选，减小镜像体积）
-RUN rm -rf /cosyvoice_src
+# RUN rm -rf /cosyvoice_src
 
-WORKDIR /app
+WORKDIR /cosyvoice_src
 
 EXPOSE 7860
 
