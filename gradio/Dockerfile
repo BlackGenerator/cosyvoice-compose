@@ -20,8 +20,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # === 使用正确的阿里云 PyPI 镜像 ===
-ENV PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
-ENV PIP_TRUSTED_HOST=mirrors.aliyun.com
+ENV PIP_INDEX_URL=https://mirrors.cloud.aliyuncs.com/pypi/simple/
+ENV PIP_TRUSTED_HOST=mirrors.cloud.aliyuncs.com
 
 # 克隆官方 CosyVoice 仓库（仅用于获取代码和 webui.py）
 RUN git clone https://github.com/FunAudioLLM/CosyVoice.git /cosyvoice_src
