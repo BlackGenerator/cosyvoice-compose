@@ -1,49 +1,56 @@
-# web/Dockerfile
-# 用于部署自定义 Flask API 服务（调用 CosyVoice，纯 CPU）
+# web/Dockerfile — 复用 gradio 的 conda 环境
 
-FROM python:3.10-slim
+# 从 gradio 镜像复制 conda 环境
+FROM ghcr.io/mamba-org/micromamba:1.5.8-bookworm-slim as gradio-base
 
-WORKDIR /app
+USER root
 
-# === 安全处理 APT 源（兼容无 sources.list）===
-RUN set -eux; \
-    CODENAME="$(grep -oP 'VERSION_CODENAME=\K\w+' /etc/os-release || echo 'bookworm')"; \
-    if [ ! -s /etc/apt/sources.list ]; then \
-        echo "deb http://deb.debian.org/debian $CODENAME main" > /etc/apt/sources.list; \
-        echo "deb http://deb.debian.org/debian-security $CODENAME-security main" >> /etc/apt/sources.list; \
-        echo "deb http://deb.debian.org/debian $CODENAME-updates main" >> /etc/apt/sources.list; \
-    fi; \
-    sed -i "s|http://deb\.debian\.org|http://us-west-1-apt.pkg.alinuxcloud.com|g" /etc/apt/sources.list; \
-    sed -i "s|http://security\.debian\.org|http://us-west-1-apt.pkg.alinuxcloud.com|g" /etc/apt/sources.list
-
-# 安装系统依赖（走阿里云 VPC 内网）
+# 安装系统依赖
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git ffmpeg libsndfile1 && \
+    apt-get install -y --no-install-recommends \
+        git \
+        git-lfs \
+        ffmpeg \
+        libsndfile1 \
+        ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# === 使用正确的阿里云 PyPI 镜像 ===
-ENV PIP_INDEX_URL=https://mirrors.cloud.aliyuncs.com/pypi/simple/
-ENV PIP_TRUSTED_HOST=mirrors.cloud.aliyuncs.com
+ENV MAMBA_ROOT_PREFIX=/opt/conda
+ENV PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
 
-# 克隆官方 CosyVoice 仓库（用于获取 cosyvoice/ 模块）
-RUN git clone https://github.com/FunAudioLLM/CosyVoice.git /cosyvoice_src
+# 复制环境文件并创建 conda 环境
+COPY environment-cpu.yml /tmp/environment-cpu.yml
+RUN micromamba create -y -f /tmp/environment-cpu.yml -n cosyvoice-cpu && \
+    micromamba clean --all --yes
 
-# 安装 CPU 兼容的 Python 依赖（含 Flask）
-COPY requirements-cpu.txt .
-RUN pip install --no-cache-dir -r requirements-cpu.txt
+# 克隆 CosyVoice 源码
+RUN git clone --depth=1 --recursive https://github.com/FunAudioLLM/CosyVoice.git /cosyvoice_src
 
-# === 安装 PyTorch CPU 版本（必须走官方源）===
-RUN unset PIP_INDEX_URL PIP_TRUSTED_HOST && \
-    pip install torch==2.3.1+cpu torchaudio==2.3.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
+# 安装 CosyVoice 模块
+RUN cp -r /cosyvoice_src/cosyvoice /opt/conda/envs/cosyvoice-cpu/lib/python3.10/site-packages/
 
-# === 使 cosyvoice 模块可导入 ===
-RUN cp -r /cosyvoice_src/cosyvoice /usr/local/lib/python3.10/site-packages/
+# 第二阶段：仅复制环境，不包含 git 源码
+FROM ghcr.io/mamba-org/micromamba:1.5.8-bookworm-slim
 
-# 清理源码（可选）
-RUN rm -rf /cosyvoice_src
+USER root
 
-# 复制你的 Flask 应用代码（app.py 等）
-COPY . .
+# 复制系统依赖
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ffmpeg \
+        libsndfile1 \
+        ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# 复制 conda 环境和 CosyVoice 模块
+COPY --from=gradio-base /opt/conda /opt/conda
+COPY --from=gradio-base /cosyvoice_src/cosyvoice /opt/conda/envs/cosyvoice-cpu/lib/python3.10/site-packages/cosyvoice
+
+ENV PATH=/opt/conda/envs/cosyvoice-cpu/bin:$PATH
+
+# 复制 Flask 应用代码
+COPY . /app
+WORKDIR /app
 
 EXPOSE 7860
 
