@@ -16,6 +16,8 @@ services:
     ports:
       - "7860:7860"
     volumes:
+    # 挂载本地预下载的模型目录
+      - ./pretrained_models:/cosyvoice_src/pretrained_models
       - cosyvoice_cache:/root/.cache/modelscope
       - cosyvoice_output:/app/static
     restart: unless-stopped
@@ -29,6 +31,8 @@ services:
     ports:
       - "7870:7860"
     volumes:
+    # 挂载本地预下载的模型目录
+      - ./pretrained_models:/cosyvoice_src/pretrained_models
       - cosyvoice_cache:/root/.cache/modelscope
     depends_on:
       - base
