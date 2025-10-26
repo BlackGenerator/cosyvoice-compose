@@ -42,8 +42,6 @@ dependencies:
       - openai-whisper==20231117
       - wetext==0.0.4
       - matcha-tts
-      # 修复 huggingface_hub 版本兼容性
-      - huggingface-hub==0.19.4
       # PyTorch CPU 版本
       - torch==2.3.1+cpu
       - torchaudio==2.3.1+cpu
